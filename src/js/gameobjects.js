@@ -5,6 +5,27 @@ let movingD = false
 let dash = false
 const MovingSpeed = 5
 let hpDash = 1
+const bulletImg = []
+let attack = false
+
+function loadAsset(path) {
+    return new Promise((resolve) => {
+        const img = new Image()
+        img.src = path
+        img.onload = () => {
+            // image loaded and ready to be used
+            resolve(img)
+        }
+    })
+}
+
+;(function loadGame() {
+    for (let i = 0; i < 5; i++) {
+        loadAsset(`img/b0${i + 1}.png`).then((img) => {
+            bulletImg[i] = img
+        })
+    }
+})()
 
 //set up the class GameObject
 class GameObject {
@@ -40,14 +61,18 @@ class Movable extends GameObject {
 export class Hero extends Movable {
     constructor(x, y, width, height, path) {
         super(x, y, width, height, path, 'hero')
+        this.bulletLevel = 0
+        this.bulletSpeed = 10
+        this.bulletSet = {}
     }
 
     active = (ctx) => {
         if (hpDash > 1) {
-            hpDash /= 1.1
-            console.log(hpDash)
+            hpDash /= 1.2
+            if (hpDash < 1) hpDash = 1
         }
-        // Padding X = 0
+
+        // check move
         let sp = dash ? MovingSpeed * 2 * hpDash : MovingSpeed
         sp = hpDash > 1 ? sp * hpDash : sp
         console.log(sp)
@@ -60,6 +85,40 @@ export class Hero extends Movable {
         if (movingD && this.y + this.height < 700)
             this.moveTo(this.x, this.y + sp)
         if (movingU && this.y > 0) this.moveTo(this.x, this.y - sp)
+
+        //check Attack
+        if (attack) {
+            this.shoot()
+        }
+
+        // check bullet obj
+
+        this.draw(ctx)
+    }
+
+    shoot = (angle) => {
+        const launchX = this.x + this.width / 2
+        const launchY = this.y
+        const bulletId = 'b' + Date.now()
+        this.bulletSet[bulletId] = new Bullet(
+            launchX,
+            launchY,
+            10,
+            40,
+            bulletImg[this.bulletLevel],
+        )
+    }
+}
+
+class Bullet extends GameObject {
+    constructor(x, y, width, height, path, type) {
+        super(x, y, width, height, path, type)
+    }
+
+    active = (ctx) => {
+        // launch 실제 x, y 값 구하기 -> bullet위치 보정
+        // 매 frame마다 moveTo 할거니까 위치 바꾸기
+        // 충돌체크 어디서 하카마씸?
         this.draw(ctx)
     }
 }
@@ -79,35 +138,6 @@ class Enemy extends Movable {
         }, 300)
     }
 }
-
-//set up an EventEmitter class that contains listeners
-class EventEmitter {
-    constructor() {
-        this.listeners = {}
-    }
-    //when a message is received, let the listener to handle its payload
-    on(message, listener) {
-        if (!this.listeners[message]) {
-            this.listeners[message] = []
-        }
-        this.listeners[message].push(listener)
-    }
-    //when a message is sent, send it to a listener with some payload
-    emit(message, payload = null) {
-        if (this.listeners[message]) {
-            this.listeners[message].forEach((l) => l(message, payload))
-        }
-    }
-}
-
-//set up a message structure
-const Messages = {
-    HERO_MOVE_LEFT: 'HERO_MOVE_LEFT',
-}
-//invoke the eventEmitter you set up above
-const eventEmitter = new EventEmitter()
-//set up a hero
-//let the eventEmitter know to watch for messages pertaining to the hero moving left, and act on it
 
 //set up the window to listen for the keyup event, specifically if the left arrow is hit, emit a message to move the hero left
 window.addEventListener('keydown', (evt) => {
