@@ -8,6 +8,11 @@ let hpDash = 1
 const bulletImg = []
 let attack = false
 const bulletSet = {}
+let isEnergy = false
+let motionRate = 100
+let rateSpeed = 2
+let spinRate = 0
+let spinSpeed = 1
 
 function loadAsset(path) {
     return new Promise((resolve) => {
@@ -64,6 +69,7 @@ export class Hero extends Movable {
         super(x, y, width, height, path, 'hero')
         this.bulletLevel = 1
         this.bulletSpeed = 3
+        this.energy = 0
     }
 
     active = (ctx) => {
@@ -72,10 +78,10 @@ export class Hero extends Movable {
             if (hpDash < 1) hpDash = 1
         }
 
+        console.log(this.energy)
         // check move
         let sp = dash ? MovingSpeed * 2 * hpDash : MovingSpeed
         sp = hpDash > 1 ? sp * hpDash : sp
-        console.log(sp)
         if (movingL && this.x > 0) {
             this.x = this.x - sp < 0 ? 0 : this.x - sp
         }
@@ -99,15 +105,41 @@ export class Hero extends Movable {
             if (this.bulletLevel < 2) angle = 0
             else if (this.bulletLevel < 4) angle = 10
             else angle = 20
-            this.shoot(angle)
+            this.shot(angle)
         }
 
         // check bullet obj
+
+        // Energy Print
+        // Energy charging
+        if (isEnergy) this.energy++
+        else {
+            // emit special shot when energy gathered to some extent
+            if(energy > 100) {
+              // charge shot
+            }
+            this.energy = 0
+            rateSpeed = 1
+            spinSpeed = 2
+        }
+
         this.draw(ctx)
+        // painting Energy after painting Hero
+        if (this.energy > 20) {
+            motionRate -= rateSpeed
+            rateSpeed += 0.01
+            spinRate += spinSpeed
+            spinSpeed += 0.001
+            this.paintEnergy(ctx, 0 + spinRate, 0)
+            this.paintEnergy(ctx, 72 + spinRate, 20)
+            this.paintEnergy(ctx, 144 + spinRate, 40)
+            this.paintEnergy(ctx, 216 + spinRate, 60)
+            this.paintEnergy(ctx, 288 + spinRate, 80)
+        }
         return bulletSet
     }
 
-    shoot = (angle) => {
+    shot = (angle) => {
         const launchX = this.x + this.width / 2
         const launchY = this.y
         const bulletId = 'b' + Date.now()
@@ -146,6 +178,26 @@ export class Hero extends Movable {
             }
         }
     }
+
+    paintEnergy = (ctx, rad, rate) => {
+        const heroCenterX = this.x + this.width / 2
+        const heroCenterY = this.y + this.height / 2
+        const radius = this.height / 2 + 50
+        if (motionRate < 0) motionRate = 100
+        const myRate = (motionRate + rate) % 100
+
+        const radian = (rad / 180) * Math.PI
+
+        const energyX =
+            heroCenterX + (radius * Math.cos(radian) * myRate) / 100 - 25
+        const energyY =
+            heroCenterY + (radius * Math.sin(radian) * myRate) / 100 - 25
+        // ctx.translate(energyX, energyY)
+        // ctx.rotate(radian)
+        ctx.drawImage(bulletImg[this.bulletLevel], energyX, energyY, 50, 50)
+        // ctx.rotate(-radian)
+        // ctx.translate(-energyX, -energyY)
+    }
 }
 
 class Bullet extends Movable {
@@ -171,10 +223,13 @@ class Bullet extends Movable {
 
     checkPosition = () => {
         if (this.y < -50 || this.x < 0 || this.x > 1500) {
-            delete bulletSet[this.id]
+            this.removeBullet()
             console.log('delete', bulletSet)
         }
         return bulletSet
+    }
+    removeBullet = () => {
+        delete bulletSet[this.id]
     }
 }
 
@@ -196,7 +251,6 @@ class Enemy extends Movable {
 
 //set up the window to listen for the keyup event, specifically if the left arrow is hit, emit a message to move the hero left
 window.addEventListener('keydown', (evt) => {
-    console.log(evt.key)
     switch (evt.key) {
         case 'ArrowLeft':
             movingL = true
@@ -219,11 +273,13 @@ window.addEventListener('keydown', (evt) => {
             break
         case ' ':
             attack = true
+            isEnergy = true
             break
     }
 })
 
 window.addEventListener('keyup', (evt) => {
+    console.log(evt.key)
     switch (evt.key) {
         case 'ArrowLeft':
             movingL = false
@@ -239,6 +295,8 @@ window.addEventListener('keyup', (evt) => {
             break
         case 'Shift':
             dash = false
+        case ' ':
+            isEnergy = false
             break
     }
 })
