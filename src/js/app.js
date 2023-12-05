@@ -14,6 +14,8 @@ let gameLoopId = null
 let ctx = canvas.getContext('2d')
 let heroImg = null
 let enemyImg = null
+let hero = null
+let bulletSet = {}
 
 //3. fill it with the color red
 ctx.fillStyle = 'black'
@@ -55,23 +57,33 @@ function runGame() {
     const HeroWidth = 100
     const HeroHeight = 70
     // Init Hero Class
-    const hero = new Hero(
+    hero = new Hero(
         startHeroPositionX,
         startHeroPositionY,
         HeroWidth,
         HeroHeight,
         heroImg,
     )
-    gameLoopId = setInterval(() => {
+    function activeFrame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
-        hero.active(ctx)
-    }, 20)
+        bulletSet = hero.active(ctx)
+        Object.keys(bulletSet).forEach((k) => {
+            bulletSet = bulletSet[k].checkPosition()
+            if (!bulletSet[k]) {
+                console.log(bulletSet)
+                return
+            }
+            bulletSet[k].active(ctx)
+        })
+        gameLoopId = requestAnimationFrame(activeFrame)
+    }
+    activeFrame()
 }
 
 function stopGame() {
-    clearInterval(gameLoopId)
+    cancelAnimationFrame(gameLoopId)
     gameLoopId = null
     isStart = false
 }
@@ -90,7 +102,7 @@ let onKeyDown = function (e) {
                 runGame()
             }
             break
-        case 65:
+        case 81:
             stopGame()
             break
         default:

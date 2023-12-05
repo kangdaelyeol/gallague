@@ -7,6 +7,7 @@ const MovingSpeed = 5
 let hpDash = 1
 const bulletImg = []
 let attack = false
+const bulletSet = {}
 
 function loadAsset(path) {
     return new Promise((resolve) => {
@@ -61,9 +62,8 @@ class Movable extends GameObject {
 export class Hero extends Movable {
     constructor(x, y, width, height, path) {
         super(x, y, width, height, path, 'hero')
-        this.bulletLevel = 0
+        this.bulletLevel = 2
         this.bulletSpeed = 10
-        this.bulletSet = {}
     }
 
     active = (ctx) => {
@@ -88,38 +88,87 @@ export class Hero extends Movable {
 
         //check Attack
         if (attack) {
-            this.shoot()
+            attack = false
+            let angle
+            if (this.bulletLevel < 2) angle = 0
+            else if (this.bulletLevel < 4) angle = 10
+            else angle = 20
+            this.shoot(angle)
         }
 
         // check bullet obj
-
         this.draw(ctx)
+        return bulletSet
     }
 
     shoot = (angle) => {
         const launchX = this.x + this.width / 2
         const launchY = this.y
         const bulletId = 'b' + Date.now()
-        this.bulletSet[bulletId] = new Bullet(
+        bulletSet[bulletId] = new Bullet(
             launchX,
             launchY,
-            10,
-            40,
+            50,
+            100,
             bulletImg[this.bulletLevel],
+            this.bulletLevel,
+            bulletId,
+            angle,
         )
+        if (angle) {
+            for (let i = 10; i <= angle; i += 10) {
+                bulletSet[bulletId + 'R'] = new Bullet(
+                    launchX,
+                    launchY,
+                    50,
+                    100,
+                    bulletImg[this.bulletLevel],
+                    this.bulletLevel,
+                    bulletId + 'R',
+                    angle,
+                )
+                bulletSet[bulletId + 'L'] = new Bullet(
+                    launchX,
+                    launchY,
+                    50,
+                    100,
+                    bulletImg[this.bulletLevel],
+                    this.bulletLevel,
+                    bulletId + 'L',
+                    -angle,
+                )
+            }
+        }
     }
 }
 
-class Bullet extends GameObject {
-    constructor(x, y, width, height, path, type) {
-        super(x, y, width, height, path, type)
+class Bullet extends Movable {
+    constructor(x, y, width, height, path, level, id, angle) {
+        const startX = x - width / 2
+        const startY = y - height / 2
+        super(startX, startY, width, height, path, 'bullet')
+        this.level = level
+        this.id = id
+        this.angle = angle
     }
 
     active = (ctx) => {
-        // launch 실제 x, y 값 구하기 -> bullet위치 보정
         // 매 frame마다 moveTo 할거니까 위치 바꾸기
-        // 충돌체크 어디서 하카마씸?
+        const speed = this.level * 5 + 5
+        if (this.angle) {
+            const cosAngle = Math.cos((this.angle / 180) * Math.PI)
+            this.x = this.x - cosAngle * speed
+        }
+        this.moveTo(this.x, this.y - speed)
         this.draw(ctx)
+    }
+
+    checkPosition = () => {
+        if (this.y < -50 || this.x < 0 || this.x > 1500) {
+            delete bulletSet[this.id]
+            console.log('delete', bulletSet)
+        }
+        return bulletSet
     }
 }
 
@@ -161,6 +210,9 @@ window.addEventListener('keydown', (evt) => {
         case 'z':
         case 'Z':
             hpDash = 2.5
+            break
+        case ' ':
+            attack = true
             break
     }
 })
