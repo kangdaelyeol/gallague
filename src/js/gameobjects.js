@@ -62,8 +62,8 @@ class Movable extends GameObject {
 export class Hero extends Movable {
     constructor(x, y, width, height, path) {
         super(x, y, width, height, path, 'hero')
-        this.bulletLevel = 2
-        this.bulletSpeed = 10
+        this.bulletLevel = 1
+        this.bulletSpeed = 3
     }
 
     active = (ctx) => {
@@ -76,15 +76,21 @@ export class Hero extends Movable {
         let sp = dash ? MovingSpeed * 2 * hpDash : MovingSpeed
         sp = hpDash > 1 ? sp * hpDash : sp
         console.log(sp)
-        if (movingL && this.x > sp) this.moveTo(this.x - sp, this.y)
-
+        if (movingL && this.x > 0) {
+            this.x = this.x - sp < 0 ? 0 : this.x - sp
+        }
         // 1400 (CanvasWidth)
-        if (movingR && this.x < 1400 - this.width)
-            this.moveTo(this.x + sp, this.y)
-
-        if (movingD && this.y + this.height < 700)
-            this.moveTo(this.x, this.y + sp)
-        if (movingU && this.y > 0) this.moveTo(this.x, this.y - sp)
+        if (movingR && this.x < 1400 - this.width) {
+            this.x = this.x + sp > 1400 ? 1400 : this.x + sp
+        }
+        if (movingD && this.y - this.height < 700) {
+            this.y =
+                this.y > 700 - this.height ? 700 - this.height : this.y + sp
+        }
+        if (movingU && this.y > 0) {
+            this.y = this.y - sp < 0 ? 0 : this.y - sp
+        }
+        this.moveTo(this.x, this.y)
 
         //check Attack
         if (attack) {
@@ -113,29 +119,29 @@ export class Hero extends Movable {
             bulletImg[this.bulletLevel],
             this.bulletLevel,
             bulletId,
-            angle,
+            0,
         )
         if (angle) {
             for (let i = 10; i <= angle; i += 10) {
-                bulletSet[bulletId + 'R'] = new Bullet(
+                bulletSet[bulletId + 'R' + i] = new Bullet(
                     launchX,
                     launchY,
                     50,
                     100,
                     bulletImg[this.bulletLevel],
                     this.bulletLevel,
-                    bulletId + 'R',
-                    angle,
+                    bulletId + 'R' + i,
+                    i,
                 )
-                bulletSet[bulletId + 'L'] = new Bullet(
+                bulletSet[bulletId + 'L' + i] = new Bullet(
                     launchX,
                     launchY,
                     50,
                     100,
                     bulletImg[this.bulletLevel],
                     this.bulletLevel,
-                    bulletId + 'L',
-                    -angle,
+                    bulletId + 'L' + i,
+                    -i,
                 )
             }
         }
@@ -154,9 +160,9 @@ class Bullet extends Movable {
 
     active = (ctx) => {
         // 매 frame마다 moveTo 할거니까 위치 바꾸기
-        const speed = this.level * 5 + 5
+        const speed = this.level * 5 + 3
         if (this.angle) {
-            const cosAngle = Math.cos((this.angle / 180) * Math.PI)
+            const cosAngle = Math.tan((this.angle / 180) * Math.PI)
             this.x = this.x - cosAngle * speed
         }
         this.moveTo(this.x, this.y - speed)
