@@ -6,6 +6,7 @@ let dash = false
 const MovingSpeed = 5
 let hpDash = 1
 const bulletImg = []
+let lifeImg = null
 let attack = false
 const bulletSet = {}
 let isEnergy = false
@@ -32,6 +33,9 @@ function loadAsset(path) {
             bulletImg[i] = img
         })
     }
+    loadAsset('img/mylife.png').then((img) => {
+        lifeImg = img
+    })
 })()
 
 //set up the class GameObject
@@ -71,6 +75,7 @@ export class Hero extends Movable {
         this.bulletLevel = 1
         this.bulletSpeed = 3
         this.energy = 0
+        this.life = 3
     }
 
     active = (ctx) => {
@@ -79,7 +84,6 @@ export class Hero extends Movable {
             if (hpDash < 1) hpDash = 1
         }
 
-        console.log(this.energy)
         // check move
         let sp = dash ? MovingSpeed * 2 * hpDash : MovingSpeed
         sp = hpDash > 1 ? sp * hpDash : sp
@@ -117,7 +121,7 @@ export class Hero extends Movable {
         else {
             // emit special shot when energy is gathered to some extent
             if (this.energy > 300) {
-                // 에너지파
+                this.energyPar()
             } else if (this.energy > 100) {
                 this.specialShot()
             }
@@ -126,6 +130,7 @@ export class Hero extends Movable {
             spinSpeed = 2
         }
 
+        this.paintLife(ctx)
         this.draw(ctx)
         // painting Energy after painting Hero
         if (this.energy > 20) {
@@ -237,6 +242,157 @@ export class Hero extends Movable {
 
         launchSpecialAttack()
     }
+
+    energyPar = () => {
+        const MaxCount = 500
+        let frameCount = 0
+        const launchEnergyPar = () => {
+            const launchX = this.x + this.width / 2
+            const launchY = this.y
+
+            if (frameCount >= 450 && frameCount % 2 === 0) {
+                const bulletId = 'FB' + Date.now()
+                const bulletLevel = Math.floor(Math.random() * 5)
+                // console.log('shot', bulletId)
+                bulletSet[bulletId] = new Bullet(
+                    launchX,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletId,
+                    0,
+                )
+            }
+            if (frameCount >= 400 && frameCount % 2 === 0) {
+                const bulletIdR = 'SR4' + Date.now()
+                const bulletIdL = 'SL4' + Date.now()
+                const bulletLevel = Math.floor(Math.random() * 5)
+                // console.log('shot', bulletId)
+                bulletSet[bulletIdR] = new Bullet(
+                    launchX + 10,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletIdR,
+                    -60,
+                )
+                bulletSet[bulletIdL] = new Bullet(
+                    launchX - 10,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletIdL,
+                    60,
+                )
+            }
+            if (frameCount >= 300 && frameCount % 2 === 0) {
+                const bulletIdR = 'SR3' + Date.now()
+                const bulletIdL = 'SL3' + Date.now()
+                const bulletLevel = Math.floor(Math.random() * 5)
+                // console.log('shot', bulletId)
+                bulletSet[bulletIdR] = new Bullet(
+                    launchX + 10,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletIdR,
+                    -40,
+                )
+                bulletSet[bulletIdL] = new Bullet(
+                    launchX - 10,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletIdL,
+                    40,
+                )
+            }
+            if (frameCount >= 200 && frameCount % 2 === 0) {
+                const bulletIdR = 'SR2' + Date.now()
+                const bulletIdL = 'SL2' + Date.now()
+                const bulletLevel = Math.floor(Math.random() * 5)
+                // console.log('shot', bulletId)
+                bulletSet[bulletIdR] = new Bullet(
+                    launchX + 10,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletIdR,
+                    -20,
+                )
+                bulletSet[bulletIdL] = new Bullet(
+                    launchX - 10,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletIdL,
+                    20,
+                )
+            }
+
+            if (frameCount % 2 === 0) {
+                const bulletLevel = Math.floor(Math.random() * 5)
+                const bulletId = 'SC' + Date.now()
+                console.log('shot', bulletId)
+                bulletSet[bulletId] = new Bullet(
+                    launchX,
+                    launchY,
+                    1000,
+                    300,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletId,
+                    0,
+                )
+            } else {
+                const launchX = this.x + this.width / 2
+                const launchY = this.y
+                const bulletLevel = Math.floor(Math.random() * 5)
+                const bulletIdR = 'SR' + Date.now()
+                const bulletIdL = 'SL' + Date.now()
+                // console.log('shot', bulletId)
+                bulletSet[bulletIdR] = new Bullet(
+                    launchX + 10,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletIdR,
+                    0,
+                )
+                bulletSet[bulletIdL] = new Bullet(
+                    launchX - 10,
+                    launchY,
+                    1000,
+                    200,
+                    bulletImg[bulletLevel],
+                    4,
+                    bulletIdL,
+                    0,
+                )
+            }
+            frameCount++
+            aniLoopID = requestAnimationFrame(launchEnergyPar)
+            if (frameCount > MaxCount) return cancelAnimationFrame(aniLoopID)
+        }
+        aniLoopID = requestAnimationFrame(launchEnergyPar)
+    }
+
     paintEnergy = (ctx, rad, rate) => {
         const heroCenterX = this.x + this.width / 2
         const heroCenterY = this.y + this.height / 2
@@ -256,6 +412,24 @@ export class Hero extends Movable {
         // ctx.rotate(-radian)
         // ctx.translate(-energyX, -energyY)
     }
+
+    paintLife = (ctx) => {
+        const interval = 30
+        const dx = 1340
+        const dy = 600
+        ctx.font = '30px Arial'
+        ctx.fillStyle = 'white'
+        ctx.fillText('Life', dx - (this.life - 1) * interval, dy - 10)
+        for (let i = 0; i < this.life; i++)
+            ctx.drawImage(lifeImg, dx - interval * i, dy, 50, 100)
+    }
+
+    lifeDown = () => {
+        this.life--
+        if (this.life <= 0) this.die()
+    }
+
+    die = () => {}
 }
 
 class Bullet extends Movable {
@@ -280,7 +454,7 @@ class Bullet extends Movable {
     }
 
     checkPosition = () => {
-        if (this.y < -50 || this.x < 0 || this.x > 1500) {
+        if (this.y < -500 || this.x < -1000 || this.x > 2500) {
             this.removeBullet()
         }
         return bulletSet
