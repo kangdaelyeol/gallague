@@ -13,6 +13,7 @@ let motionRate = 100
 let rateSpeed = 2
 let spinRate = 0
 let spinSpeed = 1
+let aniLoopID = null
 
 function loadAsset(path) {
     return new Promise((resolve) => {
@@ -114,9 +115,11 @@ export class Hero extends Movable {
         // Energy charging
         if (isEnergy) this.energy++
         else {
-            // emit special shot when energy gathered to some extent
-            if(energy > 100) {
-              // charge shot
+            // emit special shot when energy is gathered to some extent
+            if (this.energy > 300) {
+                // 에너지파
+            } else if (this.energy > 100) {
+                this.specialShot()
             }
             this.energy = 0
             rateSpeed = 1
@@ -179,6 +182,61 @@ export class Hero extends Movable {
         }
     }
 
+    specialShot = () => {
+        const MaxCount = 100
+        let frameCount = 0
+        const launchSpecialAttack = () => {
+            const launchX = this.x + this.width / 2
+            const launchY = this.y
+            if (frameCount % 2 === 0) {
+                const bulletLevel = Math.floor(Math.random() * 5)
+                const bulletId = 'SC' + Date.now()
+                console.log('shot', bulletId)
+                bulletSet[bulletId] = new Bullet(
+                    launchX,
+                    launchY,
+                    200,
+                    150,
+                    bulletImg[bulletLevel],
+                    this.bulletLevel,
+                    bulletId,
+                    0,
+                )
+            } else {
+                const launchX = this.x + this.width / 2
+                const launchY = this.y
+                const bulletLevel = Math.floor(Math.random() * 5)
+                const bulletIdR = 'SR' + Date.now()
+                const bulletIdL = 'SL' + Date.now()
+                // console.log('shot', bulletId)
+                bulletSet[bulletIdR] = new Bullet(
+                    launchX + 10,
+                    launchY,
+                    200,
+                    150,
+                    bulletImg[bulletLevel],
+                    this.bulletLevel,
+                    bulletIdR,
+                    0,
+                )
+                bulletSet[bulletIdL] = new Bullet(
+                    launchX - 10,
+                    launchY,
+                    200,
+                    150,
+                    bulletImg[bulletLevel],
+                    this.bulletLevel,
+                    bulletIdL,
+                    0,
+                )
+            }
+            frameCount++
+            aniLoopID = requestAnimationFrame(launchSpecialAttack)
+            if (frameCount > MaxCount) return cancelAnimationFrame(aniLoopID)
+        }
+
+        launchSpecialAttack()
+    }
     paintEnergy = (ctx, rad, rate) => {
         const heroCenterX = this.x + this.width / 2
         const heroCenterY = this.y + this.height / 2
@@ -224,7 +282,6 @@ class Bullet extends Movable {
     checkPosition = () => {
         if (this.y < -50 || this.x < 0 || this.x > 1500) {
             this.removeBullet()
-            console.log('delete', bulletSet)
         }
         return bulletSet
     }

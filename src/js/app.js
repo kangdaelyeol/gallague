@@ -72,7 +72,6 @@ function runGame() {
         Object.keys(bulletSet).forEach((k) => {
             bulletSet = bulletSet[k].checkPosition()
             if (!bulletSet[k]) {
-                console.log(bulletSet)
                 return
             }
             bulletSet[k].active(ctx)
