@@ -4,7 +4,7 @@ import { join, dirname } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
-const PORT = 8080
+const PORT = process.env.PORT || 8000
 
 const app = express()
 
