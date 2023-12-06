@@ -1,4 +1,4 @@
-import { Hero } from './gameobjects.js'
+import { Hero, EnemySet } from './gameobjects.js'
 import './gameobjects.js'
 //1. get the canvas reference
 const canvas = document.getElementById('myCanvas')
@@ -15,6 +15,7 @@ let ctx = canvas.getContext('2d')
 let heroImg = null
 let enemyImg = null
 let hero = null
+let enemySet = null
 let bulletSet = {}
 
 //3. fill it with the color red
@@ -38,15 +39,9 @@ function loadAsset(path) {
 
 ;(async function loadGame() {
     heroImg = await loadAsset('img/hero.png')
-    enemyImg = await loadAsset('img/enemyShip.png')
     ctx = canvas.getContext('2d')
     ctx.drawImage(heroImg, canvas.width / 2, canvas.height - 100, 100, 70)
     // ctx.fillRect(canvas.width / 2, canvas.height - 100, 50, 50)
-    for (let x = START_X; x < STOP_X; x += 98) {
-        for (let y = CANVAS_PADDING_Y; y < 50 * 5 + CANVAS_PADDING_Y; y += 50) {
-            ctx.drawImage(enemyImg, x, y)
-        }
-    }
 })()
 
 function runGame() {
@@ -64,18 +59,29 @@ function runGame() {
         HeroHeight,
         heroImg,
     )
+    enemySet = new EnemySet()
     function activeFrame() {
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
         bulletSet = hero.active(ctx)
+        enemySet.active(ctx)
+        enemySet.collisionCheck(hero)
         Object.keys(bulletSet).forEach((k) => {
             bulletSet = bulletSet[k].checkPosition()
             if (!bulletSet[k]) {
                 return
             }
             bulletSet[k].active(ctx)
+            enemySet.collisionCheck(bulletSet[k])
         })
+        if (hero.life <= 0) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height)
+            ctx.fillStyle = 'black'
+            ctx.fillRect(0, 0, canvas.width, canvas.height)
+            stopGame()
+            return
+        }
         gameLoopId = requestAnimationFrame(activeFrame)
     }
     activeFrame()

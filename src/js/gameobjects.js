@@ -5,8 +5,6 @@ let movingD = false
 let dash = false
 const MovingSpeed = 5
 let hpDash = 1
-const bulletImg = []
-let lifeImg = null
 let attack = false
 const bulletSet = {}
 let isEnergy = false
@@ -15,6 +13,19 @@ let rateSpeed = 2
 let spinRate = 0
 let spinSpeed = 1
 let aniLoopID = null
+// image Src
+const bulletImg = []
+let lifeImg = null
+let enemyImg = null
+
+function iscollision(x, y) {
+    return (
+        x.x + x.width > y.x &&
+        x.x < y.x + y.width &&
+        x.y + x.height > y.y &&
+        x.y < y.y + y.height
+    )
+}
 
 function loadAsset(path) {
     return new Promise((resolve) => {
@@ -35,6 +46,9 @@ function loadAsset(path) {
     }
     loadAsset('img/mylife.png').then((img) => {
         lifeImg = img
+    })
+    loadAsset('img/enemy.png').then((img) => {
+        enemyImg = img
     })
 })()
 
@@ -414,22 +428,19 @@ export class Hero extends Movable {
     }
 
     paintLife = (ctx) => {
-        const interval = 30
-        const dx = 1340
-        const dy = 600
+        const interval = 20
+        const dx = 1350
+        const dy = 650
         ctx.font = '30px Arial'
         ctx.fillStyle = 'white'
         ctx.fillText('Life', dx - (this.life - 1) * interval, dy - 10)
         for (let i = 0; i < this.life; i++)
-            ctx.drawImage(lifeImg, dx - interval * i, dy, 50, 100)
+            ctx.drawImage(lifeImg, dx - interval * i, dy, 50, 50)
     }
 
     lifeDown = () => {
         this.life--
-        if (this.life <= 0) this.die()
     }
-
-    die = () => {}
 }
 
 class Bullet extends Movable {
@@ -465,18 +476,104 @@ class Bullet extends Movable {
 }
 
 class Enemy extends Movable {
-    constructor(x, y, width, height, path) {
+    constructor(x, y, width, height, path, id) {
         super(x, y, width, height, path)
-        ;(this.width = 98), (this.height = 50)
         this.type = 'Enemy'
-        let id = setInterval(() => {
-            if (this.y < canvas.height - this.height) {
-                this.y += 5
-            } else {
-                console.log('Stopped at', this.y)
-                clearInterval(id)
+        this.id = id
+        const rn = Math.random()
+        this.movingDown = rn > 0.5 ? true : false
+        this.movingRight = rn > 0.5 ? true : false
+    }
+
+    active = (ctx) => {
+        // movingPattern
+        const movingX = Math.floor(Math.random() * 5) + 5
+        const movingY = Math.floor(Math.random() * 5)
+
+        if (this.movingRight) {
+            this.x += movingX
+            if (this.x - this.width >= 1400) {
+                this.x = 1400
+                this.movingRight = false
             }
-        }, 300)
+        } else {
+            this.x -= movingX
+            if (this.x <= 0) {
+                this.x = 0
+                this.movingRight = true
+            }
+        }
+
+        if (this.movingDown) {
+            this.y += movingY
+            if (this.y + this.height >= 700) {
+                this.y = 700
+                this.movingDown = false
+            }
+        } else {
+            this.y -= movingY
+            if (this.y <= 0) {
+                this.y = 0
+                this.movingDown = true
+            }
+        }
+
+        this.moveTo(this.x, this.y)
+        this.draw(ctx)
+    }
+}
+
+export class EnemySet {
+    constructor() {
+        this.enemySet = {}
+        this.activeCount = 0
+    }
+
+    active = (ctx) => {
+        if (this.activeCount % 50 === 0) this.createEnemy()
+
+        Object.keys(this.enemySet).forEach((i) => {
+            this.enemySet[i].active(ctx)
+        })
+        this.activeCount++
+    }
+
+    createEnemy = () => {
+        const enemyWidth = 50 + 200 * Math.random()
+        const enemyHeight = 20 + 100 * Math.random()
+        const x = Math.floor(Math.random() * 1400) - enemyWidth
+        const y = Math.random() * 50
+        const enemyId = 'E' + Date.now()
+        this.enemySet[enemyId] = new Enemy(
+            x,
+            y,
+            enemyWidth,
+            enemyHeight,
+            enemyImg,
+            enemyId,
+        )
+    }
+
+    collisionCheck = (object) => {
+        Object.keys(this.enemySet).forEach((k) => {
+            const en = this.enemySet[k]
+            switch (object.type) {
+                case 'hero':
+                    if (!iscollision(object, en)) break
+                    this.removeEnemy(en.id)
+                    object.lifeDown()
+                    break
+                case 'bullet':
+                    if (!iscollision(object, en)) break
+                    this.removeEnemy(en.id)
+                    object.removeBullet()
+                    break
+            }
+        })
+    }
+
+    removeEnemy = (id) => {
+        delete this.enemySet[id]
     }
 }
 
