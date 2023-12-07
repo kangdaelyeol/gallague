@@ -2,27 +2,19 @@ import { Hero, EnemySet } from './gameobjects.js'
 import './gameobjects.js'
 //1. get the canvas reference
 const canvas = document.getElementById('myCanvas')
-
-const MONSTER_TOTAL = 5
-const MONSTER_WIDTH = MONSTER_TOTAL * 98
-const START_X = (canvas.width - MONSTER_WIDTH) / 2
-const STOP_X = START_X + MONSTER_WIDTH
-const CANVAS_PADDING_Y = 20
 let isStart = false
 let gameLoopId = null
 //2. set the context to 2D to draw basic shapes
 let ctx = canvas.getContext('2d')
 let heroImg = null
-let enemyImg = null
 let hero = null
 let enemySet = null
-let bulletSet = {}
 
 //3. fill it with the color red
 ctx.fillStyle = 'black'
 
 //4. and draw a rectangle with these parameters, setting location and size
-ctx.fillRect(0, 0, 1400, 700) // x,y,width, height
+ctx.fillRect(0, 0, canvas.width, canvas.height) // x,y,width, height
 
 function loadAsset(path) {
     return new Promise((resolve) => {
@@ -61,20 +53,18 @@ function runGame() {
     )
     enemySet = new EnemySet()
     function activeFrame() {
+        // Set Canvas Background
         ctx.clearRect(0, 0, canvas.width, canvas.height)
         ctx.fillStyle = 'black'
         ctx.fillRect(0, 0, canvas.width, canvas.height)
-        bulletSet = hero.active(ctx)
+
+        // Interaction between Objects
+        hero.active(ctx)
         enemySet.active(ctx)
-        enemySet.collisionCheck(hero)
-        Object.keys(bulletSet).forEach((k) => {
-            bulletSet = bulletSet[k].checkPosition()
-            if (!bulletSet[k]) {
-                return
-            }
-            bulletSet[k].active(ctx)
-            enemySet.collisionCheck(bulletSet[k])
-        })
+        enemySet.collisionCheckWithHero(hero)
+        enemySet.collisionCheckWithBulletSet(hero.bulletSet)
+
+        // when life is 0
         if (hero.life <= 0) {
             ctx.clearRect(0, 0, canvas.width, canvas.height)
             ctx.fillStyle = 'black'

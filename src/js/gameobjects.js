@@ -18,7 +18,7 @@ const bulletImg = []
 let lifeImg = null
 let enemyImg = null
 
-function iscollision(x, y) {
+function isCollision(x, y) {
     return (
         x.x + x.width > y.x &&
         x.x < y.x + y.width &&
@@ -90,6 +90,7 @@ export class Hero extends Movable {
         this.bulletSpeed = 3
         this.energy = 0
         this.life = 3
+        this.bulletSet = new BulletSet()
     }
 
     active = (ctx) => {
@@ -146,26 +147,27 @@ export class Hero extends Movable {
 
         this.paintLife(ctx)
         this.draw(ctx)
+        this.bulletSet.active(ctx)
         // painting Energy after painting Hero
-        if (this.energy > 20) {
+        if (this.energy > 100) {
+            const increaseRate = this.energy > 300 ? 1 : 0.01
             motionRate -= rateSpeed
-            rateSpeed += 0.01
+            rateSpeed += increaseRate
             spinRate += spinSpeed
-            spinSpeed += 0.001
+            spinSpeed += increaseRate / 10
             this.paintEnergy(ctx, 0 + spinRate, 0)
             this.paintEnergy(ctx, 72 + spinRate, 20)
             this.paintEnergy(ctx, 144 + spinRate, 40)
             this.paintEnergy(ctx, 216 + spinRate, 60)
             this.paintEnergy(ctx, 288 + spinRate, 80)
         }
-        return bulletSet
     }
 
     shot = (angle) => {
         const launchX = this.x + this.width / 2
         const launchY = this.y
         const bulletId = 'b' + Date.now()
-        bulletSet[bulletId] = new Bullet(
+        this.bulletSet.createBullet(
             launchX,
             launchY,
             50,
@@ -177,7 +179,7 @@ export class Hero extends Movable {
         )
         if (angle) {
             for (let i = 10; i <= angle; i += 10) {
-                bulletSet[bulletId + 'R' + i] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX,
                     launchY,
                     50,
@@ -187,7 +189,7 @@ export class Hero extends Movable {
                     bulletId + 'R' + i,
                     i,
                 )
-                bulletSet[bulletId + 'L' + i] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX,
                     launchY,
                     50,
@@ -228,7 +230,7 @@ export class Hero extends Movable {
                 const bulletIdR = 'SR' + Date.now()
                 const bulletIdL = 'SL' + Date.now()
                 // console.log('shot', bulletId)
-                bulletSet[bulletIdR] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX + 10,
                     launchY,
                     200,
@@ -238,7 +240,7 @@ export class Hero extends Movable {
                     bulletIdR,
                     0,
                 )
-                bulletSet[bulletIdL] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX - 10,
                     launchY,
                     200,
@@ -268,7 +270,7 @@ export class Hero extends Movable {
                 const bulletId = 'FB' + Date.now()
                 const bulletLevel = Math.floor(Math.random() * 5)
                 // console.log('shot', bulletId)
-                bulletSet[bulletId] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX,
                     launchY,
                     1000,
@@ -284,7 +286,7 @@ export class Hero extends Movable {
                 const bulletIdL = 'SL4' + Date.now()
                 const bulletLevel = Math.floor(Math.random() * 5)
                 // console.log('shot', bulletId)
-                bulletSet[bulletIdR] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX + 10,
                     launchY,
                     1000,
@@ -294,7 +296,7 @@ export class Hero extends Movable {
                     bulletIdR,
                     -60,
                 )
-                bulletSet[bulletIdL] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX - 10,
                     launchY,
                     1000,
@@ -310,7 +312,7 @@ export class Hero extends Movable {
                 const bulletIdL = 'SL3' + Date.now()
                 const bulletLevel = Math.floor(Math.random() * 5)
                 // console.log('shot', bulletId)
-                bulletSet[bulletIdR] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX + 10,
                     launchY,
                     1000,
@@ -320,7 +322,7 @@ export class Hero extends Movable {
                     bulletIdR,
                     -40,
                 )
-                bulletSet[bulletIdL] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX - 10,
                     launchY,
                     1000,
@@ -336,7 +338,7 @@ export class Hero extends Movable {
                 const bulletIdL = 'SL2' + Date.now()
                 const bulletLevel = Math.floor(Math.random() * 5)
                 // console.log('shot', bulletId)
-                bulletSet[bulletIdR] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX + 10,
                     launchY,
                     1000,
@@ -346,7 +348,7 @@ export class Hero extends Movable {
                     bulletIdR,
                     -20,
                 )
-                bulletSet[bulletIdL] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX - 10,
                     launchY,
                     1000,
@@ -362,7 +364,7 @@ export class Hero extends Movable {
                 const bulletLevel = Math.floor(Math.random() * 5)
                 const bulletId = 'SC' + Date.now()
                 console.log('shot', bulletId)
-                bulletSet[bulletId] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX,
                     launchY,
                     1000,
@@ -379,7 +381,7 @@ export class Hero extends Movable {
                 const bulletIdR = 'SR' + Date.now()
                 const bulletIdL = 'SL' + Date.now()
                 // console.log('shot', bulletId)
-                bulletSet[bulletIdR] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX + 10,
                     launchY,
                     1000,
@@ -389,7 +391,7 @@ export class Hero extends Movable {
                     bulletIdR,
                     0,
                 )
-                bulletSet[bulletIdL] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX - 10,
                     launchY,
                     1000,
@@ -464,14 +466,61 @@ class Bullet extends Movable {
         this.draw(ctx)
     }
 
-    checkPosition = () => {
+    checkAlive = () => {
         if (this.y < -500 || this.x < -1000 || this.x > 2500) {
-            this.removeBullet()
+            return false
         }
-        return bulletSet
+        return true
     }
     removeBullet = () => {
         delete bulletSet[this.id]
+    }
+}
+
+class BulletSet {
+    constructor() {
+        this.bulletSet = {}
+    }
+
+    active = (ctx) => {
+        // check Position -> whether if the bullet is available to be painted or not
+        this.checkPosition()
+        // active bullets
+        Object.keys(this.bulletSet).forEach((k) => {
+            this.bulletSet[k].active(ctx, this.removeBullet)
+        })
+    }
+
+    createBullet = (x, y, width, height, path, level, id, angle) => {
+        this.bulletSet[id] = new Bullet(
+            x,
+            y,
+            width,
+            height,
+            path,
+            level,
+            id,
+            angle,
+        )
+    }
+
+    getBulletSet = () => {
+        const arr = []
+        Object.keys(this.bulletSet).forEach((v) => {
+            arr.push(this.bulletSet[v])
+        })
+        return arr
+    }
+
+    removeBullet = (id) => {
+        delete this.bulletSet[id]
+    }
+
+    checkPosition = () => {
+        Object.keys(this.bulletSet).forEach((k) => {
+            const isAlive = this.bulletSet[k].checkAlive()
+            if (!isAlive) this.removeBullet(k)
+        })
     }
 }
 
@@ -559,16 +608,37 @@ export class EnemySet {
             const en = this.enemySet[k]
             switch (object.type) {
                 case 'hero':
-                    if (!iscollision(object, en)) break
+                    if (!isCollision(object, en)) break
                     this.removeEnemy(en.id)
                     object.lifeDown()
                     break
                 case 'bullet':
-                    if (!iscollision(object, en)) break
+                    if (!isCollision(object, en)) break
                     this.removeEnemy(en.id)
                     object.removeBullet()
                     break
             }
+        })
+    }
+
+    collisionCheckWithHero = (hero) => {
+        Object.keys(this.enemySet).forEach((k) => {
+            const en = this.enemySet[k]
+            if (!isCollision(hero, en)) return
+            this.removeEnemy(en.id)
+            hero.lifeDown()
+        })
+    }
+
+    collisionCheckWithBulletSet = (bulletSet) => {
+        const bullets = bulletSet.getBulletSet()
+        Object.keys(this.enemySet).forEach((k) => {
+            const en = this.enemySet[k]
+            bullets.forEach((b) => {
+                if (!isCollision(en, b)) return
+                this.removeEnemy(en.id)
+                bulletSet.removeBullet(b.id)
+            })
         })
     }
 
