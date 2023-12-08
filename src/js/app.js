@@ -27,13 +27,21 @@ function loadAsset(path) {
     })
 }
 
-// use like so
+const setCanvasSize = () => {
+    const screenWidth = window.innerWidth
+    const screenHeight = window.innerHeight
+    canvas.width = screenWidth
+    canvas.height = screenHeight
+    console.log(hero?.canvasWidth)
+    hero?.setCanvasSize(screenWidth, screenHeight)
+    enemySet?.setCanvasSize(screenWidth, screenHeight)
+}
 
 ;(async function loadGame() {
     heroImg = await loadAsset('img/hero.png')
     ctx = canvas.getContext('2d')
+    setCanvasSize()
     ctx.drawImage(heroImg, canvas.width / 2, canvas.height - 100, 100, 70)
-    // ctx.fillRect(canvas.width / 2, canvas.height - 100, 50, 50)
 })()
 
 function runGame() {
@@ -52,6 +60,8 @@ function runGame() {
         heroImg,
     )
     enemySet = new EnemySet()
+    setCanvasSize()
+
     function activeFrame() {
         // Set Canvas Background
         ctx.clearRect(0, 0, canvas.width, canvas.height)
@@ -66,9 +76,6 @@ function runGame() {
 
         // when life is 0
         if (hero.life <= 0) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height)
-            ctx.fillStyle = 'black'
-            ctx.fillRect(0, 0, canvas.width, canvas.height)
             stopGame()
             return
         }
@@ -79,6 +86,9 @@ function runGame() {
 
 function stopGame() {
     cancelAnimationFrame(gameLoopId)
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
     gameLoopId = null
     isStart = false
 }
@@ -105,4 +115,9 @@ let onKeyDown = function (e) {
     }
 }
 
+const onResize = () => {
+    setCanvasSize()
+}
+
 window.addEventListener('keydown', onKeyDown)
+window.addEventListener('resize', onResize)

@@ -3,7 +3,6 @@ let movingR = false
 let movingU = false
 let movingD = false
 let dash = false
-const MovingSpeed = 5
 let hpDash = 1
 let attack = false
 const bulletSet = {}
@@ -62,10 +61,16 @@ class GameObject {
         this.width = width
         this.height = height
         this.img = path
+        this.canvasWidth = 0
+        this.canvasHeight = 0
     }
 
     draw(ctx) {
         ctx.drawImage(this.img, this.x, this.y, this.width, this.height)
+    }
+    setCanvasSize = (w, h) => {
+        this.canvasWidth = w
+        this.canvasHeight = h
     }
 }
 
@@ -91,6 +96,7 @@ export class Hero extends Movable {
         this.energy = 0
         this.life = 3
         this.bulletSet = new BulletSet()
+        this.movingSpeed = 5
     }
 
     active = (ctx) => {
@@ -100,18 +106,21 @@ export class Hero extends Movable {
         }
 
         // check move
-        let sp = dash ? MovingSpeed * 2 * hpDash : MovingSpeed
+        let sp = dash ? this.movingSpeed * 2 * hpDash : this.movingSpeed
         sp = hpDash > 1 ? sp * hpDash : sp
         if (movingL && this.x > 0) {
             this.x = this.x - sp < 0 ? 0 : this.x - sp
         }
-        // 1400 (CanvasWidth)
-        if (movingR && this.x < 1400 - this.width) {
-            this.x = this.x + sp > 1400 ? 1400 : this.x + sp
+
+        if (movingR && this.x < this.canvasWidth - this.width) {
+            this.x =
+                this.x + sp > this.canvasWidth ? this.canvasWidth : this.x + sp
         }
-        if (movingD && this.y - this.height < 700) {
+        if (movingD && this.y - this.height < this.canvasHeight) {
             this.y =
-                this.y > 700 - this.height ? 700 - this.height : this.y + sp
+                this.y > this.canvasHeight - this.height
+                    ? this.canvasHeight - this.height
+                    : this.y + sp
         }
         if (movingU && this.y > 0) {
             this.y = this.y - sp < 0 ? 0 : this.y - sp
@@ -431,11 +440,8 @@ export class Hero extends Movable {
 
     paintLife = (ctx) => {
         const interval = 20
-        const dx = 1350
-        const dy = 650
-        ctx.font = '30px Arial'
-        ctx.fillStyle = 'white'
-        ctx.fillText('Life', dx - (this.life - 1) * interval, dy - 10)
+        const dx = this.canvasWidth - 50
+        const dy = this.canvasHeight - 50
         for (let i = 0; i < this.life; i++)
             ctx.drawImage(lifeImg, dx - interval * i, dy, 50, 50)
     }
@@ -467,11 +473,12 @@ class Bullet extends Movable {
     }
 
     checkAlive = () => {
-        if (this.y < -500 || this.x < -1000 || this.x > 2500) {
+        if (this.y < -this.height) {
             return false
         }
         return true
     }
+
     removeBullet = () => {
         delete bulletSet[this.id]
     }
@@ -541,8 +548,8 @@ class Enemy extends Movable {
 
         if (this.movingRight) {
             this.x += movingX
-            if (this.x - this.width >= 1400) {
-                this.x = 1400
+            if (this.x + this.width >= this.canvasWidth) {
+                this.x = this.canvasWidth - this.width
                 this.movingRight = false
             }
         } else {
@@ -555,8 +562,8 @@ class Enemy extends Movable {
 
         if (this.movingDown) {
             this.y += movingY
-            if (this.y + this.height >= 700) {
-                this.y = 700
+            if (this.y + this.height >= this.canvasHeight) {
+                this.y = this.canvasHeight - this.height
                 this.movingDown = false
             }
         } else {
@@ -576,6 +583,15 @@ export class EnemySet {
     constructor() {
         this.enemySet = {}
         this.activeCount = 0
+        this.canvasWidth = 0
+        this.canvasHeight = 0
+    }
+    setCanvasSize = (w, h) => {
+        this.canvasWidth = w
+        this.canvasHeight = h
+        Object.keys(this.enemySet).forEach((i) => {
+            this.enemySet[i].setCanvasSize = (w, h)
+        })
     }
 
     active = (ctx) => {
@@ -590,7 +606,7 @@ export class EnemySet {
     createEnemy = () => {
         const enemyWidth = 50 + 200 * Math.random()
         const enemyHeight = 20 + 100 * Math.random()
-        const x = Math.floor(Math.random() * 1400) - enemyWidth
+        const x = Math.floor(Math.random() * this.canvasWidth) - enemyWidth
         const y = Math.random() * 50
         const enemyId = 'E' + Date.now()
         this.enemySet[enemyId] = new Enemy(
@@ -601,24 +617,10 @@ export class EnemySet {
             enemyImg,
             enemyId,
         )
-    }
-
-    collisionCheck = (object) => {
-        Object.keys(this.enemySet).forEach((k) => {
-            const en = this.enemySet[k]
-            switch (object.type) {
-                case 'hero':
-                    if (!isCollision(object, en)) break
-                    this.removeEnemy(en.id)
-                    object.lifeDown()
-                    break
-                case 'bullet':
-                    if (!isCollision(object, en)) break
-                    this.removeEnemy(en.id)
-                    object.removeBullet()
-                    break
-            }
-        })
+        this.enemySet[enemyId].setCanvasSize(
+            this.canvasWidth,
+            this.canvasHeight,
+        )
     }
 
     collisionCheckWithHero = (hero) => {
