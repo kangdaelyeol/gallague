@@ -1,5 +1,5 @@
 // import { Hero, EnemySet } from './gameobjects.js'
-import { Hero } from './gameobjects/hero.js'
+import { Hero } from './gameobjects/Hero.js'
 import { EnemySet } from './gameobjects/EnemySet.js'
 // import './gameobjects.js'
 //1. get the canvas reference
