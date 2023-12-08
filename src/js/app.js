@@ -5,44 +5,25 @@ const canvas = document.getElementById('myCanvas')
 let isStart = false
 let gameLoopId = null
 //2. set the context to 2D to draw basic shapes
-let ctx = canvas.getContext('2d')
+let ctx = null
 let heroImg = null
 let hero = null
 let enemySet = null
 
-//3. fill it with the color red
-ctx.fillStyle = 'black'
-
-//4. and draw a rectangle with these parameters, setting location and size
-ctx.fillRect(0, 0, canvas.width, canvas.height) // x,y,width, height
-
-function loadAsset(path) {
-    return new Promise((resolve) => {
-        const img = new Image()
-        img.src = path
-        img.onload = () => {
-            // image loaded and ready to be used
-            resolve(img)
-        }
-    })
+const paintBackGround = (ctx) => {
+    ctx.clearRect(0, 0, canvas.width, canvas.height)
+    ctx.fillStyle = 'black'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
 }
 
 const setCanvasSize = () => {
-    const screenWidth = window.innerWidth
+    const screenWidth = document.body.clientWidth
     const screenHeight = window.innerHeight
     canvas.width = screenWidth
     canvas.height = screenHeight
-    console.log(hero?.canvasWidth)
     hero?.setCanvasSize(screenWidth, screenHeight)
     enemySet?.setCanvasSize(screenWidth, screenHeight)
 }
-
-;(async function loadGame() {
-    heroImg = await loadAsset('img/hero.png')
-    ctx = canvas.getContext('2d')
-    setCanvasSize()
-    ctx.drawImage(heroImg, canvas.width / 2, canvas.height - 100, 100, 70)
-})()
 
 function runGame() {
     console.log('runGame')
@@ -64,10 +45,7 @@ function runGame() {
 
     function activeFrame() {
         // Set Canvas Background
-        ctx.clearRect(0, 0, canvas.width, canvas.height)
-        ctx.fillStyle = 'black'
-        ctx.fillRect(0, 0, canvas.width, canvas.height)
-
+        paintBackGround(ctx)
         // Interaction between Objects
         hero.active(ctx)
         enemySet.active(ctx)
@@ -86,9 +64,7 @@ function runGame() {
 
 function stopGame() {
     cancelAnimationFrame(gameLoopId)
-    ctx.clearRect(0, 0, canvas.width, canvas.height)
-    ctx.fillStyle = 'black'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+    paintBackGround(ctx)
     gameLoopId = null
     isStart = false
 }
@@ -121,3 +97,11 @@ const onResize = () => {
 
 window.addEventListener('keydown', onKeyDown)
 window.addEventListener('resize', onResize)
+
+function init() {
+    ctx = canvas.getContext('2d')
+    setCanvasSize()
+    paintBackGround(ctx)
+}
+
+init()
