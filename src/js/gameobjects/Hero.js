@@ -1,4 +1,36 @@
 import { Movable } from './Movable.js'
+import { loadAsset } from './factory.js'
+import { BulletSet } from './BulletSet.js'
+let heroImg = null
+let lifeImg = null
+let movingL = false
+let movingR = false
+let movingU = false
+let movingD = false
+let dash = false
+let hpDash = 1
+let attack = false
+let isEnergy = false
+let motionRate = 100
+let rateSpeed = 2
+let spinRate = 0
+let spinSpeed = 1
+let aniLoopID = null
+const bulletImg = []
+
+loadAsset('../../img/hero.png').then((img) => {
+    heroImg = img
+})
+
+for (let i = 0; i < 5; i++) {
+    loadAsset(`../../img/b0${i + 1}.png`).then((img) => {
+        bulletImg[i] = img
+    })
+}
+
+loadAsset('../../img/mylife.png').then((img) => {
+    lifeImg = img
+})
 
 //this is a specific class that extends the Movable class, so it can take advantage of all the properties that it inherits
 export class Hero extends Movable {
@@ -14,7 +46,7 @@ export class Hero extends Movable {
 
     active = (ctx) => {
         if (hpDash > 1) {
-            hpDash /= 1.2
+            hpDash /= 1.1
             if (hpDash < 1) hpDash = 1
         }
 
@@ -44,8 +76,6 @@ export class Hero extends Movable {
             else angle = 20
             this.shot(angle)
         }
-
-        // check bullet obj
 
         // Energy Print
         // Energy charging
@@ -130,7 +160,7 @@ export class Hero extends Movable {
                 const bulletLevel = Math.floor(Math.random() * 5)
                 const bulletId = 'SC' + Date.now()
                 console.log('shot', bulletId)
-                bulletSet[bulletId] = new Bullet(
+                this.bulletSet.createBullet(
                     launchX,
                     launchY,
                     200,
@@ -319,6 +349,7 @@ export class Hero extends Movable {
                     0,
                 )
             }
+
             frameCount++
             aniLoopID = requestAnimationFrame(launchEnergyPar)
             if (frameCount > MaxCount) return cancelAnimationFrame(aniLoopID)
@@ -358,3 +389,54 @@ export class Hero extends Movable {
         this.life--
     }
 }
+
+window.addEventListener('keydown', (evt) => {
+    switch (evt.key) {
+        case 'ArrowLeft':
+            movingL = true
+            break
+        case 'ArrowRight':
+            movingR = true
+            break
+        case 'ArrowUp':
+            movingU = true
+            break
+        case 'ArrowDown':
+            movingD = true
+            break
+        case 'Shift':
+            dash = true
+            break
+        case 'z':
+        case 'Z':
+            hpDash = 2.5
+            break
+        case ' ':
+            attack = true
+            isEnergy = true
+            break
+    }
+})
+
+window.addEventListener('keyup', (evt) => {
+    console.log(evt.key)
+    switch (evt.key) {
+        case 'ArrowLeft':
+            movingL = false
+            break
+        case 'ArrowRight':
+            movingR = false
+            break
+        case 'ArrowUp':
+            movingU = false
+            break
+        case 'ArrowDown':
+            movingD = false
+            break
+        case 'Shift':
+            dash = false
+        case ' ':
+            isEnergy = false
+            break
+    }
+})

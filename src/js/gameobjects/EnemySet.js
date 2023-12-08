@@ -1,4 +1,10 @@
 import { Enemy } from './enemy.js'
+import { loadAsset, isCollision } from './factory.js'
+
+let enemyImg = null
+loadAsset('../../img/enemy.png').then((img) => {
+    enemyImg = img
+})
 
 export class EnemySet {
     constructor() {

@@ -1,12 +1,13 @@
-import { Hero, EnemySet } from './gameobjects.js'
-import './gameobjects.js'
+// import { Hero, EnemySet } from './gameobjects.js'
+import { Hero } from './gameobjects/hero.js'
+import { EnemySet } from './gameobjects/EnemySet.js'
+// import './gameobjects.js'
 //1. get the canvas reference
 const canvas = document.getElementById('myCanvas')
 let isStart = false
 let gameLoopId = null
 //2. set the context to 2D to draw basic shapes
 let ctx = null
-let heroImg = null
 let hero = null
 let enemySet = null
 
@@ -38,7 +39,6 @@ function runGame() {
         startHeroPositionY,
         HeroWidth,
         HeroHeight,
-        heroImg,
     )
     enemySet = new EnemySet()
     setCanvasSize()
