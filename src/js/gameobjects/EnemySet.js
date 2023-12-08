@@ -2,7 +2,7 @@ import { Enemy } from './enemy.js'
 import { loadAsset, isCollision } from './factory.js'
 
 let enemyImg = null
-loadAsset('../../img/enemy.png').then((img) => {
+loadAsset('img/enemy.png').then((img) => {
     enemyImg = img
 })
 
@@ -12,19 +12,24 @@ export class EnemySet {
         this.activeCount = 0
         this.canvasWidth = 0
         this.canvasHeight = 0
+        this.round = 0
+        this.activeDelay = 50
     }
     setCanvasSize = (w, h) => {
         this.canvasWidth = w
         this.canvasHeight = h
-        console.log('setCanvasSize', w, h)
         Object.keys(this.enemySet).forEach((i) => {
             this.enemySet[i].setCanvasSize(w, h)
         })
     }
 
-    active = (ctx) => {
-        if (this.activeCount % 50 === 0) this.createEnemy()
+    setRound = (round) => {
+        this.round = round
+        this.activeDelay = Math.floor(50 / this.round)
+    }
 
+    active = (ctx) => {
+        if (this.activeCount % this.activeDelay === 0) this.createEnemy()
         Object.keys(this.enemySet).forEach((i) => {
             this.enemySet[i].active(ctx)
         })
@@ -36,6 +41,7 @@ export class EnemySet {
         const enemyHeight = 20 + 100 * Math.random()
         const speedX = (Math.random() * this.canvasWidth) / 200 + 5
         const speedY = this.canvasHeight / 200
+        const score = Math.floor(enemyWidth + enemyHeight + speedX * speedY)
         const x = Math.floor(Math.random() * this.canvasWidth) - enemyWidth
         const y = Math.random() * 50
         const enemyId = 'E' + Date.now()
@@ -48,6 +54,7 @@ export class EnemySet {
             enemyId,
             speedX,
             speedY,
+            score,
         )
         this.enemySet[enemyId].setCanvasSize(
             this.canvasWidth,
@@ -64,13 +71,14 @@ export class EnemySet {
         })
     }
 
-    collisionCheckWithBulletSet = (bulletSet) => {
+    collisionCheckWithBulletSet = (bulletSet, gameInfo) => {
         const bullets = bulletSet.getBulletSet()
         Object.keys(this.enemySet).forEach((k) => {
             const en = this.enemySet[k]
             bullets.forEach((b) => {
                 if (!isCollision(en, b)) return
                 this.removeEnemy(en.id)
+                gameInfo.score += en.score
                 bulletSet.removeBullet(b.id)
             })
         })

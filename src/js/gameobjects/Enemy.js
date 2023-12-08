@@ -1,14 +1,9 @@
 import { Movable } from './Movable.js'
-import { loadAsset } from './factory.js'
 
-let enemyImg = null
-loadAsset('../../img/enemy.png').then((img) => {
-    enemyImg = img
-})
 
 export class Enemy extends Movable {
-    constructor(x, y, width, height, path, id, speedX, speedY) {
-        super(x, y, width, height, enemyImg)
+    constructor(x, y, width, height, path, id, speedX, speedY, score) {
+        super(x, y, width, height, path)
         this.type = 'Enemy'
         this.id = id
         const rn = Math.random()
@@ -16,6 +11,7 @@ export class Enemy extends Movable {
         this.movingRight = rn > 0.5 ? true : false
         this.speedX = speedX
         this.speedY = speedY
+        this.score = score
     }
 
     active = (ctx) => {

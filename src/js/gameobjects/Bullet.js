@@ -12,7 +12,7 @@ export class Bullet extends Movable {
 
     active = (ctx) => {
         // 매 frame마다 moveTo 할거니까 위치 바꾸기
-        const speed = this.level * 5 + 3
+        const speed = this.level * 7 + 15
         if (this.angle) {
             const cosAngle = Math.tan((this.angle / 180) * Math.PI)
             this.x = this.x - cosAngle * speed

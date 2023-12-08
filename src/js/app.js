@@ -6,15 +6,48 @@ import { EnemySet } from './gameobjects/EnemySet.js'
 const canvas = document.getElementById('myCanvas')
 let isStart = false
 let gameLoopId = null
+let roundLoopId = null
+
 //2. set the context to 2D to draw basic shapes
 let ctx = null
 let hero = null
 let enemySet = null
 
+const gameInfo = {
+    round: 1,
+    bulletLevel: 0,
+    score: 0,
+}
+
 const paintBackGround = (ctx) => {
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     ctx.fillStyle = 'black'
     ctx.fillRect(0, 0, canvas.width, canvas.height)
+}
+
+const paintInfo = (ctx) => {
+    const infoPaddingX = 30
+    const infoPaddingY = 60
+    const lineHeight = 60
+    ctx.fillStyle = 'white'
+    ctx.font = '40px Arial'
+    ctx.fillText(`Round: ${gameInfo.round}`, infoPaddingX, infoPaddingY)
+
+    ctx.fillText(
+        `BulletLevel: ${gameInfo.bulletLevel}`,
+        infoPaddingX,
+        infoPaddingY + lineHeight,
+    )
+
+    ctx.fillText(
+        `Score: ${gameInfo.score}`,
+        infoPaddingX,
+        infoPaddingY + lineHeight * 2,
+    )
+
+    // Round
+    // bulletLevel
+    // Score
 }
 
 const setCanvasSize = () => {
@@ -26,14 +59,25 @@ const setCanvasSize = () => {
     enemySet?.setCanvasSize(screenWidth, screenHeight)
 }
 
+const initGameInfo = () => {
+    gameInfo.round = 0
+    gameInfo.bulletLevel = 0
+    gameInfo.score = 0
+}
+
 function runGame() {
-    console.log('runGame')
     isStart = true
+
+    // Set Hero Position
     const startHeroPositionX = canvas.width / 2
     const startHeroPositionY = canvas.height - 100
     const HeroWidth = 100
     const HeroHeight = 70
-    // Init Hero Class
+
+    // initGameInfo
+    initGameInfo()
+
+    // Init GameObjects
     hero = new Hero(
         startHeroPositionX,
         startHeroPositionY,
@@ -41,8 +85,16 @@ function runGame() {
         HeroHeight,
     )
     enemySet = new EnemySet()
+
     setCanvasSize()
 
+    // Set Round Loop Timer
+    roundLoopId = setInterval(() => {
+        gameInfo.round++
+        enemySet.setRound(gameInfo.round)
+    }, 2000)
+
+    // Active Frame
     function activeFrame() {
         // Set Canvas Background
         paintBackGround(ctx)
@@ -50,23 +102,34 @@ function runGame() {
         hero.active(ctx)
         enemySet.active(ctx)
         enemySet.collisionCheckWithHero(hero)
-        enemySet.collisionCheckWithBulletSet(hero.bulletSet)
+        enemySet.collisionCheckWithBulletSet(hero.bulletSet, gameInfo)
+        paintInfo(ctx)
 
         // when life is 0
         if (hero.life <= 0) {
             stopGame()
             return
         }
+
+        // handle bulletLevel (Temp)
+        hero.bulletLevel = Math.floor(gameInfo.score / 10000)
+        if (hero.bulletLevel > 4) hero.bulletLevel = 4
+
+        // setLoop Id
         gameLoopId = requestAnimationFrame(activeFrame)
     }
     activeFrame()
 }
 
 function stopGame() {
+    // Loop Stop
     cancelAnimationFrame(gameLoopId)
-    paintBackGround(ctx)
     gameLoopId = null
     isStart = false
+    clearInterval(roundLoopId)
+    roundLoopId = null
+    // Paint Stop
+    paintBackGround(ctx)
 }
 
 let onKeyDown = function (e) {

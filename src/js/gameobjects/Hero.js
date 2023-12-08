@@ -18,17 +18,17 @@ let spinSpeed = 1
 let aniLoopID = null
 const bulletImg = []
 
-loadAsset('../../img/hero.png').then((img) => {
+loadAsset('img/hero.png').then((img) => {
     heroImg = img
 })
 
 for (let i = 0; i < 5; i++) {
-    loadAsset(`../../img/b0${i + 1}.png`).then((img) => {
+    loadAsset(`img/b0${i + 1}.png`).then((img) => {
         bulletImg[i] = img
     })
 }
 
-loadAsset('../../img/mylife.png').then((img) => {
+loadAsset('img/mylife.png').then((img) => {
     lifeImg = img
 })
 
@@ -36,8 +36,7 @@ loadAsset('../../img/mylife.png').then((img) => {
 export class Hero extends Movable {
     constructor(x, y, width, height) {
         super(x, y, width, height, heroImg, 'hero')
-        this.bulletLevel = 1
-        this.bulletSpeed = 3
+        this.bulletLevel = 0
         this.energy = 0
         this.life = 3
         this.bulletSet = new BulletSet()
@@ -385,6 +384,10 @@ export class Hero extends Movable {
             ctx.drawImage(lifeImg, dx - interval * i, dy, 50, 50)
     }
 
+    levelUp = () => {
+        this.bulletLevel++
+    }
+
     lifeDown = () => {
         this.life--
     }
@@ -419,7 +422,6 @@ window.addEventListener('keydown', (evt) => {
 })
 
 window.addEventListener('keyup', (evt) => {
-    console.log(evt.key)
     switch (evt.key) {
         case 'ArrowLeft':
             movingL = false
