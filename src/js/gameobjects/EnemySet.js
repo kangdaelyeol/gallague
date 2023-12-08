@@ -1,4 +1,4 @@
-import { Enemy } from './enemy.js'
+import { Enemy } from './Enemy.js'
 import { loadAsset, isCollision } from './factory.js'
 
 let enemyImg = null

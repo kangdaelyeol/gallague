@@ -1,6 +1,5 @@
 import { Movable } from './Movable.js'
 
-
 export class Enemy extends Movable {
     constructor(x, y, width, height, path, id, speedX, speedY, score) {
         super(x, y, width, height, path)
